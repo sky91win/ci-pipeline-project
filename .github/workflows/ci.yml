@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
           cache: maven
 
       - name: Build & Unit Test
@@ -43,19 +43,19 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-      ####################################################
+      #################################################
       # Install Trivy
-      ####################################################
+      #################################################
       - name: Install Trivy
         run: |
           sudo apt-get update
           sudo apt-get install -y wget
-          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb
-          sudo dpkg -i trivy_0.65.0_Linux-64bit.deb
+          wget -qO- https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+          trivy --version
 
-      ####################################################
+      #################################################
       # Filesystem Scan
-      ####################################################
+      #################################################
       - name: Trivy Filesystem Scan
         run: |
           trivy fs . \
@@ -63,17 +63,17 @@ jobs:
             --ignore-unfixed \
             --format table
 
-      ####################################################
+      #################################################
       # Build Docker Image
-      ####################################################
+      #################################################
       - name: Build Docker Image
         run: |
           docker build -t $IMAGE_NAME:$IMAGE_TAG .
           docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
 
-      ####################################################
+      #################################################
       # Image Scan
-      ####################################################
+      #################################################
       - name: Trivy Image Scan
         run: |
           trivy image $IMAGE_NAME:$IMAGE_TAG \
@@ -81,25 +81,25 @@ jobs:
             --ignore-unfixed \
             --format table
 
-      ####################################################
-      # AWS Authentication
-      ####################################################
+      #################################################
+      # Configure AWS Credentials
+      #################################################
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
 
-      ####################################################
-      # Login to ECR
-      ####################################################
+      #################################################
+      # Login to Amazon ECR
+      #################################################
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      ####################################################
+      #################################################
       # Tag Docker Image
-      ####################################################
+      #################################################
       - name: Tag Docker Image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -108,9 +108,9 @@ jobs:
           docker tag $IMAGE_NAME:$IMAGE_TAG $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker tag $IMAGE_NAME:$IMAGE_TAG $REGISTRY/$REPOSITORY:latest
 
-      ####################################################
-      # Push Docker Image
-      ####################################################
+      #################################################
+      # Push Docker Images
+      #################################################
       - name: Push Docker Images
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
