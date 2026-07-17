@@ -1,6 +1,7 @@
 name: Java CI Pipeline
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -110,7 +111,7 @@ jobs:
 
       #################################################
       # Push Docker Images
-      ################################################
+      #################################################
       - name: Push Docker Images
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
