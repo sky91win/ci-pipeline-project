@@ -20,10 +20,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: application
-
     steps:
       #################################################
       # Checkout
@@ -42,7 +38,16 @@ jobs:
           cache: maven
 
       #################################################
-      # Build & Test
+      # Verify Project Structure
+      #################################################
+      - name: Verify Project Structure
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 2 -type f
+
+      #################################################
+      # Build & Unit Test
       #################################################
       - name: Build & Unit Test
         run: mvn clean verify
@@ -52,10 +57,10 @@ jobs:
       #################################################
       - name: SonarQube Scan
         run: |
-          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
+          mvn sonar:sonar \
             -Dsonar.projectKey=ci-pipeline-project \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
       #################################################
       # Install Trivy
@@ -68,7 +73,7 @@ jobs:
           trivy --version
 
       #################################################
-      # Filesystem Scan
+      # Trivy Filesystem Scan
       #################################################
       - name: Trivy Filesystem Scan
         run: |
@@ -118,15 +123,15 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       #################################################
-      # Debug ECR Variables
+      # Verify ECR Variables
       #################################################
       - name: Verify ECR Variables
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
-          echo "Registry = $REGISTRY"
-          echo "Repository = $REPOSITORY"
+          echo "Registry=$REGISTRY"
+          echo "Repository=$REPOSITORY"
 
       #################################################
       # Tag Docker Image
