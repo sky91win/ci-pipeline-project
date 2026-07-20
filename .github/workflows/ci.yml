@@ -13,7 +13,7 @@ permissions:
 
 env:
   IMAGE_NAME: springboot-app
-  IMAGE_TAG: stable-v1.0.0
+  IMAGE_TAG: canary-v1.0.0
   AWS_REGION: us-east-1
 
 jobs:

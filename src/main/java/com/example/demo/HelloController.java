@@ -7,6 +7,6 @@ public class HelloController {
 
     @GetMapping("/hello")
     public String hello() {
-        return "Hello from Stable v1.0.0";
+        return "Hello from canary v1.0.0";
     }
 }
